@@ -1,3 +1,4 @@
+import os
 import argparse
 import pyperclip
 from random import randrange
@@ -11,11 +12,14 @@ UPPER = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
 NUMBERS = '0123456789'
 SYMBOLS = '~`!@#$%^&*()_-+={[}]|\:;"\'<,>.?/'
 
-def save():
+def save_password(password):
   """
   Saves the password to the local passwords.txt file.
   """
-  print('save')
+  print('Saving...')
+
+  with open(os.path.join('passwords.txt'), 'w') as f:
+    f.write(password)
 
 def get_password(length, save, no_lower=False, no_upper=False,
                   no_numbers=False, no_symbols=False):
@@ -54,6 +58,10 @@ def get_password(length, save, no_lower=False, no_upper=False,
   pyperclip.copy(password)
   print(Fore.MAGENTA + Style.BRIGHT + 'Password copied to clipboard.')
 
+  # check for save flag
+  if save:
+    save_password(password)
+
   return Fore.CYAN + 'Password: ' + Fore.GREEN + Style.BRIGHT + password
 
 def generate_password(length, chars):
@@ -90,7 +98,6 @@ def main(args):
                         args.no_upper,
                         args.no_numbers, 
                         args.no_symbols)
-
   print(output)
 
 def parse_arguments():
