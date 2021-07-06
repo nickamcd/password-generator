@@ -3,7 +3,7 @@ import argparse
 import pyperclip
 from random import randrange
 from colorama import Fore, Style, init
-from cryptography.fernet import Fernet
+from cryptography.fernet import Fernet, InvalidToken
 
 __version__ = '0.1.0' # software version number
 
@@ -26,16 +26,36 @@ def save_password(password):
     with open('key.key', 'wb') as f:
       f.write(key)
 
-  # load in key
+  with open('key.key', 'rb') as f:
+    key = f.read()
+
+  fernet = Fernet(key)
+  encrypted = fernet.encrypt(password.encode())
+
+  with open(os.path.join('passwords.txt'), 'ab') as f:
+    f.write(encrypted)
+
+def read_passwords():
+  """
+  Decrypts the passwords.txt file and saves to decrypted.txt file.
+  """
   with open('key.key', 'rb') as f:
     key = f.read()
 
   fernet = Fernet(key)
 
-  encrypted = fernet.encrypt(password.encode('utf-8'))
+  with open(os.path.join('passwords.txt'), 'rb') as f:
+    encrypted = f.read()
 
-  with open(os.path.join('passwords.txt'), 'ab') as f:
-    f.write(encrypted)
+  try:
+    decrypted = fernet.decrypt(encrypted)
+    with open('decrypted.txt', 'w') as f:
+      f.write(decrypted.decode())
+
+  except InvalidToken as e:
+    print("Invalid Key")
+
+  return 'Decrypted to dectyped.txt'
 
 def get_password(length, save, no_lower=False, no_upper=False,
                   no_numbers=False, no_symbols=False):
@@ -94,7 +114,7 @@ def generate_password(length, chars):
   password = ''
   for i in range(length):
     password = password + chars[randrange(len(chars))]
-  return password + '\n'
+  return password
 
 def parse_arguments():
   """
@@ -103,24 +123,30 @@ def parse_arguments():
   version = '%(prog)s ' + __version__
 
   parser = argparse.ArgumentParser(description='Simple Password Generator')
+
+  function_group = parser.add_mutually_exclusive_group(required=True)
+  function_group.add_argument('-gp', '--generate-password', action='store_true', \
+                                help="Generate a password")
+  function_group.add_argument('-rp', '--read-passwords', action='store_true', \
+                                help="Read encrypted passwords.txt")
   parser.add_argument('-l', '--length', metavar='<int>', type=int, \
                       default=12, help='Set the len of password (default -> 12)')
   parser.add_argument('-s', '--save', action='store_true', \
-                      help='Save the password to passwords.txt file')
+                      help='Save the password to encrypoted passwords.txt file')
   parser.add_argument('-nl', '--no-lower', action='store_true', \
-                      help='Flag to disable lowercase letters in pw generation')
+                      help='Disable lowercase letters in password generation')
   parser.add_argument('-nu', '--no-upper', action='store_true', \
-                      help='Flag to disable uppercase letters in pw generation')
+                      help='Disable uppercase letters in password generation')
   parser.add_argument('-nn', '--no-numbers', action='store_true', \
-                      help='Flag to disable nums in pw generation')
+                      help='Disable nums in password generation')
   parser.add_argument('-ns', '--no-symbols', action='store_true', \
-                      help='Flag to disable symbols in pw generation')
+                      help='Disable symbols in password generation')
   parser.add_argument('-V', '--version', action='version', version=version, \
                       help='Display version')
-  group = parser.add_mutually_exclusive_group()
-  group.add_argument('-v', '--verbose', action='store_true', \
+  display_group = parser.add_mutually_exclusive_group()
+  display_group.add_argument('-v', '--verbose', action='store_true', \
                       help='Increase output verbosity')
-  group.add_argument('-q', '--quiet', action='store_true', \
+  display_group.add_argument('-q', '--quiet', action='store_true', \
                       help='Decrease output verbosity')
   return parser.parse_args()
 
@@ -135,12 +161,15 @@ def main(args):
   """
   init(autoreset=True) # colorama init
   print(args)
-  output = get_password(args.length,
-                        args.save, 
-                        args.no_lower, 
-                        args.no_upper,
-                        args.no_numbers, 
-                        args.no_symbols)
+  if (args.generate_password):
+    output = get_password(args.length,
+                          args.save, 
+                          args.no_lower, 
+                          args.no_upper,
+                          args.no_numbers, 
+                          args.no_symbols)
+  elif (args.read_passwords):
+    output = read_passwords()
   print(output)
 
 
