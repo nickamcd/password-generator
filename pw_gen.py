@@ -1,23 +1,57 @@
 import argparse
+from random import randrange
 
 __version__ = '0.1.0'
 
-def length(length):
-  """
-  Alters the length of the password string that is generated.
-
-  Parameters
-  ----------
-    length : int
-      Length of the password generated
-  """
-  print(str(length))
+# Strings for diff chars to include in pw
+LOWER = 'abcdefghijklmnopqrstuvwxyz'
+UPPER = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+NUMBERS = '0123456789'
+SYMBOLS = '~`!@#$%^&*()_-+={[}]|\:;"\'<,>.?/'
 
 def save():
   """
   Saves the password to the local passwords.txt file.
   """
   print('save')
+
+def generate_password(length, no_lower=False, no_upper=False, no_numbers=False, no_symbols=False):
+  """
+  Generate the password by selecting random chars.
+
+  Parameters
+  ----------
+    length : int
+      Length of the password
+
+    no_lower : bool
+      Flag for if pw has lowercase letters or not
+
+    no_upper : bool
+      Flag for if pw has uppercase letters or not
+    
+    no_numbers : bool
+      Flag for if pw has numbers or not
+
+    no_symbols : bool
+      Flag for if pw has symbols or not
+  """
+  # create pool of chars to be used
+  chars = ''
+  chars = (chars + LOWER, chars)[no_lower]
+  chars = (chars + UPPER, chars)[no_upper]
+  chars = (chars + NUMBERS, chars)[no_numbers]
+  chars = (chars + SYMBOLS, chars)[no_symbols]
+
+  if len(chars) == 0:
+    return 'Unable to generate password'
+
+  password = ''
+
+  for i in range(length):
+    password = password + chars[randrange(len(chars))]
+
+  return password
 
 def main(args):
   """
@@ -30,11 +64,13 @@ def main(args):
   """
   print(args)
 
-  if(args.length):
-    length(args.length)
+  password = generate_password( args.length, 
+                                args.no_lower, 
+                                args.no_upper,
+                                args.no_numbers, 
+                                args.no_symbols )
 
-  if (args.save):
-    save()
+  print(password)
 
 def parse_arguments():
   """
@@ -47,6 +83,10 @@ def parse_arguments():
                       default=12, help='Set the length of the password (default length -> 12)')
   parser.add_argument('-s', '--save', action='store_true', \
                       help='Save the password to passwords.txt file')
+  parser.add_argument('-nl', '--no-lower', action='store_true', \
+                      help='Flag to disable lowercase letters in pw generation')
+  parser.add_argument('-nu', '--no-upper', action='store_true', \
+                      help='Flag to disable uppercase letters in pw generation')
   parser.add_argument('-nn', '--no-numbers', action='store_true', \
                       help='Flag to disable nums in pw generation')
   parser.add_argument('-ns', '--no-symbols', action='store_true', \
