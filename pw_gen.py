@@ -3,6 +3,7 @@ import argparse
 import pyperclip
 from random import randrange
 from colorama import Fore, Style, init
+from cryptography.fernet import Fernet
 
 __version__ = '0.1.0' # software version number
 
@@ -18,8 +19,23 @@ def save_password(password):
   """
   print('Saving...')
 
-  with open(os.path.join('passwords.txt'), 'a') as f:
-    f.write(password + '\n')
+  # Generate key if one doesn't exist
+  if not os.path.isfile('key.key'):
+    key = Fernet.generate_key()
+
+    with open('key.key', 'wb') as f:
+      f.write(key)
+
+  # load in key
+  with open('key.key', 'rb') as f:
+    key = f.read()
+
+  fernet = Fernet(key)
+
+  encrypted = fernet.encrypt(password.encode('utf-8'))
+
+  with open(os.path.join('passwords.txt'), 'ab') as f:
+    f.write(encrypted)
 
 def get_password(length, save, no_lower=False, no_upper=False,
                   no_numbers=False, no_symbols=False):
@@ -78,27 +94,7 @@ def generate_password(length, chars):
   password = ''
   for i in range(length):
     password = password + chars[randrange(len(chars))]
-  return password
-
-
-def main(args):
-  """
-  Driver function.
-
-  Parameters
-  ----------
-    args : list
-      command line arguments
-  """
-  init(autoreset=True) # colorama init
-  print(args)
-  output = get_password(args.length,
-                        args.save, 
-                        args.no_lower, 
-                        args.no_upper,
-                        args.no_numbers, 
-                        args.no_symbols)
-  print(output)
+  return password + '\n'
 
 def parse_arguments():
   """
@@ -127,6 +123,25 @@ def parse_arguments():
   group.add_argument('-q', '--quiet', action='store_true', \
                       help='Decrease output verbosity')
   return parser.parse_args()
+
+def main(args):
+  """
+  Driver function.
+
+  Parameters
+  ----------
+    args : list
+      command line arguments
+  """
+  init(autoreset=True) # colorama init
+  print(args)
+  output = get_password(args.length,
+                        args.save, 
+                        args.no_lower, 
+                        args.no_upper,
+                        args.no_numbers, 
+                        args.no_symbols)
+  print(output)
 
 
 if __name__ == '__main__':
