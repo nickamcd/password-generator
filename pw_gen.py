@@ -4,7 +4,7 @@ import pyperclip
 from random import randrange
 from colorama import Fore, Style, init
 
-__version__ = '0.1.0'
+__version__ = '0.1.0' # software version number
 
 # Strings for diff chars to include in pw
 LOWER = 'abcdefghijklmnopqrstuvwxyz'
@@ -18,8 +18,8 @@ def save_password(password):
   """
   print('Saving...')
 
-  with open(os.path.join('passwords.txt'), 'w') as f:
-    f.write(password)
+  with open(os.path.join('passwords.txt'), 'a') as f:
+    f.write(password + '\n')
 
 def get_password(length, save, no_lower=False, no_upper=False,
                   no_numbers=False, no_symbols=False):
