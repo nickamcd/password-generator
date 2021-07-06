@@ -1,5 +1,6 @@
 import argparse
 from random import randrange
+from colorama import Fore, Back, Style, init
 
 __version__ = '0.1.0'
 
@@ -43,6 +44,7 @@ def generate_password(length, no_lower=False, no_upper=False, no_numbers=False, 
   chars = (chars + NUMBERS, chars)[no_numbers]
   chars = (chars + SYMBOLS, chars)[no_symbols]
 
+  # If pool of chars is empty, exit with message
   if len(chars) == 0:
     return 'Unable to generate password'
 
@@ -51,7 +53,7 @@ def generate_password(length, no_lower=False, no_upper=False, no_numbers=False, 
   for i in range(length):
     password = password + chars[randrange(len(chars))]
 
-  return password
+  return Fore.CYAN + 'Password: ' + Fore.GREEN + Style.BRIGHT + password
 
 def main(args):
   """
@@ -62,6 +64,7 @@ def main(args):
     args : list
       command line arguments
   """
+  init(autoreset=True) # colorama init
   print(args)
 
   password = generate_password( args.length, 
